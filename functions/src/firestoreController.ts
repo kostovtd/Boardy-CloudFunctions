@@ -1,4 +1,5 @@
 import { firestore, admin, functions } from './config/firebase'
+import './result'
 
 const FieldValue = admin.firestore.FieldValue;
 
@@ -16,17 +17,44 @@ interface BoardGame {
   minNumberOfPlayers: number
 }
 
-interface GameSession {
-  adminId: string,
-  boardGameId: string,
-  endTime: any,
-  lossers: string[],
-  players: string[],
-  startTime: any,
-  startingPoints: number,
-  teams: string[],
-  winners: string[]
+class GameSession {
+  adminId: string = ''
+  boardGameId: string = ''
+  endTime: any = null
+  lossers: string[] = []
+  players: string[] = []
+  startTime: any = null
+  startingPoints: number = 0
+  teams: string[] = []
+  winners: string[] = []
 }
+
+class GameSessionWithId {
+  id: string = ''
+  adminId: string = ''
+  boardGameId: string = ''
+  endTime: any = null
+  lossers: string[] = []
+  players: string[] = []
+  startTime: any = null
+  startingPoints: number = 0
+  teams: string[] = []
+  winners: string[] = []
+
+  constructor(id: string, gameSesionData: any) {
+    this.id = id
+    this.adminId = gameSesionData.adminId
+    this.boardGameId = gameSesionData.boardGameId
+    this.endTime = gameSesionData.lossers
+    this.lossers = gameSesionData.lossers
+    this.players = gameSesionData.players
+    this.startTime = gameSesionData.startTime
+    this.startingPoints = gameSesionData.startingPoints
+    this.teams = gameSesionData.teams
+    this.winners = gameSesionData.winners
+  }
+}
+
 
 const converter = <T>() => ({
   toFirestore: (data: Partial<T>) => data,
@@ -39,7 +67,7 @@ const dataPoint = <T>(collectionPath: string) => firestore.collection(collection
 
 const db = {
   boardGames: dataPoint<BoardGame>('boardGames'),
-  gameSessions: dataPoint<GameSession>('gameSessions')
+  gameSessions: dataPoint<GameSession>('gameSessions'),
 }
 
 
@@ -50,10 +78,10 @@ const getAllBoardgames = async () => {
     querySnapshot.forEach((doc: any) => {
       allEntries.push(doc.data())
     })
-    return allEntries
+    return { success: true, data: allEntries }
   } catch (error) {
     functions.logger.error("getAllBoardgames error:", error)
-    return false
+    return { success: false }
   }
 }
 
@@ -66,21 +94,30 @@ const getBoardgamesByName = async (name: any) => {
     querySnapshot.forEach((doc: any) => {
       allEntries.push(doc.data())
     })
-    return allEntries
+    return { success: true, data: allEntries }
   } catch (error) {
     functions.logger.error("getBoardgamesByName error:", error)
-    return false
+    return { success: false }
   }
 }
 
 
 const getGameSessionById = async (id: any) => {
   try {
-    const querySnapshot = await db.gameSessions.doc(id).get()
-    return querySnapshot.data()
+    functions.logger.info("ID: " + id)
+    await db.gameSessions.doc(id).get()
+    .then(function(docRef) {
+      if(docRef.exists) {
+        functions.logger.info("docRef.exists: " + docRef.exists)
+        return { success: true, data: new GameSessionWithId(id, docRef.data) }
+      } else {
+        return { success: false }
+      }
+    })
+    return { success: false }
   } catch (error) {
     functions.logger.error("getGameSessionById error:", error)
-    return false
+    return { success: false }
   }
 }
 
@@ -91,6 +128,8 @@ const createGameSession = async (adminId: any,
   startingPoints: number,
   teams: string[]) => {
   try {
+    // let data = new GameSessionWithId("", new GameSession())
+    let documentId = ''
     await db.gameSessions.add({
       adminId: adminId,
       boardGameId: boardGameId,
@@ -102,10 +141,24 @@ const createGameSession = async (adminId: any,
       teams: teams,
       winners: []
     })
-    return true
+    .then(function(docRef) {
+      functions.logger.debug("docRef.id = " + docRef.id)
+      // return { success: true, data:  }
+      documentId = docRef.id
+    })
+    // .then(function(docRef) {
+    //   docRef.get().then(function(docRef) {
+    //     if(docRef.exists) {
+    //       functions.logger.info("docRef - " + JSON.stringify(docRef.data()!))
+    //       data = new GameSessionWithId(docRef.id, docRef.data()!)
+    //     }
+    //   })
+    // })
+    // return { success: true, data: data }
+    return { success: true, data: documentId }
   } catch (error) {
     functions.logger.error("createGameSession error:", error)
-    return false
+    return { success: false }
   }
 }
 
@@ -113,10 +166,10 @@ const createGameSession = async (adminId: any,
 const updateGameSession = async (gameSessionId: any, gameSession: GameSession) => {
   try {
     await db.gameSessions.doc(gameSessionId).update(gameSession)
-    return true
+    return { success: true }
   } catch (error) {
     functions.logger.error("updateGameSession error:", error)
-    return false
+    return { success: false }
   }
 }
 
@@ -125,4 +178,4 @@ const updateGameSession = async (gameSessionId: any, gameSession: GameSession) =
 
 
 
-export { getAllBoardgames, getBoardgamesByName, getGameSessionById, createGameSession, updateGameSession }
+export { getAllBoardgames, getBoardgamesByName, getGameSessionById, createGameSession, updateGameSession, GameSession }

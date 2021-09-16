@@ -1,13 +1,15 @@
 import { database, admin, functions } from './config/firebase'
+import './result'
 
 const ServerValue = admin.database.ServerValue
 
 const getRealtimeGameSessionById = async (gameSessionId: any) => {
     try {
-        return await database.ref().child("gameSession_" + gameSessionId).get()
+        let data = await database.ref().child("gameSession_" + gameSessionId).get()
+        return { success: true, data: data }
     } catch (error) {
         functions.logger.error("getRealtimeGameSessionById error:", error)
-        return false
+        return { success: false }
     }
 }
 
@@ -20,10 +22,10 @@ const createRealtimeGameSession = async (gameSessionId: any, players: any) => {
             active: true,
             points: players
         })
-        return true
+        return { success: true }
     } catch(error) {
         functions.logger.error("createRealtimeGameSession error:", error)
-        return false
+        return { success: false }
     }
 }
 
@@ -37,10 +39,10 @@ const incrementRealtimeDatabasePointsBy = async (gameSessionId: any, playerId: a
             .update({
                 [playerPath]: ServerValue.increment(points)
             })
-        return true
+        return { success: true }
     } catch (error) {
         functions.logger.error("getRealtimeGameSessionById error:", error)
-        return false
+        return { success: false }
     }
 }
 

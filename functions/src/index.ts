@@ -20,11 +20,11 @@ exports.getAllBoardgames = functions.https.onRequest((req, res) => {
     }
 
     return cors(req, res, async () => {
-        let boardGamesJson = await getAllBoardgames()
-        if(boardGamesJson) {
-            res.status(200).send(boardGamesJson)
+        let boardGamesResult = await getAllBoardgames()
+        if(boardGamesResult.success) {
+            res.status(200).send(boardGamesResult)
         } else {
-            res.status(500).send('Internal Server Error')
+            res.status(500).send(new Result())
         }
     })
 })
@@ -40,11 +40,11 @@ exports.getBoardgamesByName = functions.https.onRequest((req, res) => {
     }
 
     return cors(req, res, async () => {
-        let boardGamesJson = await getBoardgamesByName(req.query.name)
-        if(boardGamesJson) {
-            res.status(200).send(boardGamesJson)
+        let boardGamesResult = await getBoardgamesByName(req.query.name)
+        if(boardGamesResult.success) {
+            res.status(200).send(boardGamesResult)
         } else {
-            res.status(500).send('Internal Server Error')
+            res.status(500).send(new Result())
         }
     })
 })
@@ -60,11 +60,11 @@ exports.getGameSessionById = functions.https.onRequest((req, res) => {
     }
 
     return cors(req, res, async () => {
-        let boardGamesJson = await getGameSessionById(req.query.id)
-        if(boardGamesJson) {
-            res.status(200).send(boardGamesJson)
+        let gameSessionResult = await getGameSessionById(req.query.id)
+        if(gameSessionResult.success) {
+            res.status(200).send(gameSessionResult)
         } else {
-            res.status(500).send('Internal Server Error')
+            res.status(500).send(new Result())
         }
     })
 })
@@ -81,13 +81,38 @@ exports.createGameSession = functions.https.onRequest((req, res) => {
     }
 
     return cors(req, res, async () => {
-        let gameSession = await createGameSession(req.body.adminId, req.body.boardGameId,
+        let createGameSessionFirestoreResult = await createGameSession(req.body.adminId, req.body.boardGameId,
             req.body.players.split(','), Number(req.body.startingPoints),
             req.body.teams.split(','))
-        if (gameSession) {
-            res.status(200).send()
+        if (createGameSessionFirestoreResult.success) {
+            functions.logger.debug("first if passed")
+            let getGameSessionFirestoreResult = await getGameSessionById(createGameSessionFirestoreResult)
+
+            if(getGameSessionFirestoreResult.success) {
+                functions.logger.debug("second if passed")
+
+                let createGameSessionRealtimeResult = await createRealtimeGameSession(createGameSessionFirestoreResult, 
+                    req.body.players.split(','))
+                
+                if(createGameSessionRealtimeResult.success) {
+                    functions.logger.debug("third if passed")
+
+                    let realtimeGameSessionResult = await getRealtimeGameSessionById(createGameSessionFirestoreResult)
+    
+                    if (realtimeGameSessionResult.success) {
+                        functions.logger.debug("fourth if passed")
+
+                        res.status(200).send({
+                            'gameSessionFirestore': getGameSessionFirestoreResult,
+                            'gameSessionRealtime': realtimeGameSessionResult.data
+                        })
+                    }
+                }    
+            }
+
+            res.status(500).send(new Result()) 
         } else {
-            res.status(500).send('Internal Server Error')            
+            res.status(500).send(new Result())            
         }
     })
 })
@@ -103,11 +128,11 @@ exports.updateGameSession = functions.https.onRequest((req, res) => {
     }
 
     return cors(req, res, async () => {
-        let gameSession = await updateGameSession(req.body.gameSessionId, req.body.gameSession)
-        if (gameSession) {
-            res.status(200).send()
+        let gameSessionResult = await updateGameSession(req.body.gameSessionId, req.body.gameSession)
+        if (gameSessionResult.success) {
+            res.status(200).send(gameSessionResult)
         } else {
-            res.status(500).send('Internal Server Error')
+            res.status(500).send(new Result())
         }
     })
 })
@@ -123,11 +148,11 @@ exports.getRealtimeGameSessionById = functions.https.onRequest((req, res) => {
     }
 
     return cors(req, res, async () => {
-        let gameSession = await getRealtimeGameSessionById(req.query.id)
-        if (!gameSession) {
-            res.status(500).send('Internal Server Error')
+        let gameSessionResult = await getRealtimeGameSessionById(req.query.id)
+        if (gameSessionResult.success) {
+            res.status(200).send(gameSessionResult)
         } else {
-            res.status(200).send(gameSession)
+            res.status(500).send('Internal Server Error')
         }
     })
 })
@@ -143,12 +168,12 @@ exports.incrementRealtimeDatabasePointsBy = functions.https.onRequest((req, res)
     }
 
     return cors(req, res, async () => {
-        let realtimeGameSession = await incrementRealtimeDatabasePointsBy(req.body.gameSessionId,
+        let realtimeGameSessionResult = await incrementRealtimeDatabasePointsBy(req.body.gameSessionId,
             req.body.playerId, req.body.points)
-        if (realtimeGameSession) {
-            res.status(200).send()
+        if (realtimeGameSessionResult.success) {
+            res.status(200).send(realtimeGameSessionResult)
         } else {
-            res.status(500).send('Internal Server Error')
+            res.status(500).send(new Result())
         }
     })
 })
@@ -164,11 +189,11 @@ exports.createRealtimeGameSession = functions.https.onRequest((req, res) => {
     }
 
     return cors(req, res, async () => {
-        let realtimeGameSession = await createRealtimeGameSession(req.body.gameSessionId, req.body.players)
-        if (realtimeGameSession) {
-            res.status(200).send()
+        let realtimeGameSessionResult = await createRealtimeGameSession(req.body.gameSessionId, req.body.players)
+        if (realtimeGameSessionResult.success) {
+            res.status(200).send(realtimeGameSessionResult)
         } else {
-            res.status(500).send('Internal Server Error')
+            res.status(500).send(new Result())
         }
     })
 })
