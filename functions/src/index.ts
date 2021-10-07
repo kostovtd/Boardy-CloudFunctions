@@ -64,14 +64,14 @@ exports.getGameSessionById = functions.https.onRequest((req, res) => {
         if(gameSessionResult.success) {
             res.status(200).send(gameSessionResult)
         } else {
-            res.status(500).send(new Result())
+            res.status(500).send()
         }
     })
 })
 
 
 exports.createGameSession = functions.https.onRequest((req, res) => {
-    if (req.method === 'PUT' || req.method === 'GET' || req.method === 'DELETE') {
+    if (req.method !== 'POST') {
         return res.status(403).send('Forbidden!')
     }
 
@@ -81,38 +81,41 @@ exports.createGameSession = functions.https.onRequest((req, res) => {
     }
 
     return cors(req, res, async () => {
-        let createGameSessionFirestoreResult = await createGameSession(req.body.adminId, req.body.boardGameId,
-            req.body.players.split(','), Number(req.body.startingPoints),
-            req.body.teams.split(','))
+        let createGameSessionFirestoreResult = await createGameSession(req.body.adminId, 
+            req.body.boardGameId,
+            req.body.players, 
+            Number(req.body.startingPoints),
+            req.body.teams)
+
         if (createGameSessionFirestoreResult.success) {
-            functions.logger.debug("first if passed")
-            let getGameSessionFirestoreResult = await getGameSessionById(createGameSessionFirestoreResult)
+            let getGameSessionFirestoreResult = await getGameSessionById(createGameSessionFirestoreResult.data)
 
             if(getGameSessionFirestoreResult.success) {
-                functions.logger.debug("second if passed")
+                let players = req.body.players
+                let points = req.body.startingPoints
 
-                let createGameSessionRealtimeResult = await createRealtimeGameSession(createGameSessionFirestoreResult, 
-                    req.body.players.split(','))
+                let createGameSessionRealtimeResult = await createRealtimeGameSession(createGameSessionFirestoreResult.data,
+                     players, +points)
                 
                 if(createGameSessionRealtimeResult.success) {
-                    functions.logger.debug("third if passed")
-
-                    let realtimeGameSessionResult = await getRealtimeGameSessionById(createGameSessionFirestoreResult)
+                    let realtimeGameSessionResult = await getRealtimeGameSessionById(createGameSessionFirestoreResult.data)
     
                     if (realtimeGameSessionResult.success) {
-                        functions.logger.debug("fourth if passed")
-
                         res.status(200).send({
                             'gameSessionFirestore': getGameSessionFirestoreResult,
                             'gameSessionRealtime': realtimeGameSessionResult.data
                         })
+                    } else {
+                        res.status(500).send() 
                     }
+                } else {
+                    res.status(500).send() 
                 }    
+            } else {
+                res.status(500).send() 
             }
-
-            res.status(500).send(new Result()) 
         } else {
-            res.status(500).send(new Result())            
+            res.status(500).send()            
         }
     })
 })
@@ -189,11 +192,11 @@ exports.createRealtimeGameSession = functions.https.onRequest((req, res) => {
     }
 
     return cors(req, res, async () => {
-        let realtimeGameSessionResult = await createRealtimeGameSession(req.body.gameSessionId, req.body.players)
-        if (realtimeGameSessionResult.success) {
-            res.status(200).send(realtimeGameSessionResult)
-        } else {
-            res.status(500).send(new Result())
-        }
+        // let realtimeGameSessionResult = await createRealtimeGameSession(req.body.gameSessionId, req.body.players)
+        // if (realtimeGameSessionResult.success) {
+        //     res.status(200).send(realtimeGameSessionResult)
+        // } else {
+        //     res.status(500).send(new Result())
+        // }
     })
 })
