@@ -29,32 +29,6 @@ class GameSession {
   winners: string[] = []
 }
 
-// class GameSessionWithId {
-//   id: string = ''
-//   adminId: string = ''
-//   boardGameId: string = ''
-//   endTime: any = null
-//   lossers: string[] = []
-//   players: string[] = []
-//   startTime: any = null
-//   startingPoints: number = 0
-//   teams: string[] = []
-//   winners: string[] = []
-
-//   constructor(id: string, gameSesionData: any) {
-//     this.id = id
-//     this.adminId = gameSesionData.adminId
-//     this.boardGameId = gameSesionData.boardGameId
-//     this.endTime = gameSesionData.lossers
-//     this.lossers = gameSesionData.lossers
-//     this.players = gameSesionData.players
-//     this.startTime = gameSesionData.startTime
-//     this.startingPoints = gameSesionData.startingPoints
-//     this.teams = gameSesionData.teams
-//     this.winners = gameSesionData.winners
-//   }
-// }
-
 
 const converter = <T>() => ({
   toFirestore: (data: Partial<T>) => data,
@@ -75,9 +49,11 @@ const getAllBoardgames = async () => {
   try {
     const allEntries: any[] = []
     const querySnapshot = await db.boardGames.get()
+
     querySnapshot.forEach((doc: any) => {
       allEntries.push(doc.data())
     })
+
     return { success: true, data: allEntries }
   } catch (error) {
     functions.logger.error("getAllBoardgames error:", error)
@@ -91,9 +67,11 @@ const getBoardgamesByName = async (name: any) => {
     const allEntries: any[] = []
     const querySnapshot = await db.boardGames.where("name", ">=", name)
       .where("name", "<=", name + '\uf8ff').get()
+
     querySnapshot.forEach((doc: any) => {
       allEntries.push(doc.data())
     })
+
     return { success: true, data: allEntries }
   } catch (error) {
     functions.logger.error("getBoardgamesByName error:", error)
@@ -105,12 +83,13 @@ const getBoardgamesByName = async (name: any) => {
 const getGameSessionById = async (id: any) => {
   try {
     const querySnapshot = await db.gameSessions.doc(id).get()
+
     if(querySnapshot.exists) {
       functions.logger.info("gameSession with ID exists: " + id)
       return { success: true, data: querySnapshot.data() }
-    } else {
-      return { success: false }
     }
+
+    return { success: false }
   } catch (error) {
     functions.logger.error("getGameSessionById error:", error)
     return { success: false }
@@ -157,6 +136,9 @@ const createGameSession = async (adminId: any,
 const updateGameSession = async (gameSessionId: any, gameSession: GameSession) => {
   try {
     await db.gameSessions.doc(gameSessionId).update(gameSession)
+    
+    functions.logger.info("game session updated")
+
     return { success: true }
   } catch (error) {
     functions.logger.error("updateGameSession error:", error)

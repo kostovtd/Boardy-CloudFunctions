@@ -15,7 +15,7 @@ const cors = require('cors')({
 
 
 exports.getAllBoardgames = functions.https.onRequest((req, res) => {
-    if (req.method === 'PUT' || req.method === 'POST' || req.method === 'DELETE') {
+    if (req.method === 'GET') {
         return res.status(403).send('Forbidden!')
     }
 
@@ -24,14 +24,14 @@ exports.getAllBoardgames = functions.https.onRequest((req, res) => {
         if(boardGamesResult.success) {
             res.status(200).send(boardGamesResult)
         } else {
-            res.status(500).send(new Result())
+            res.status(500).send('Internal Server Error')
         }
     })
 })
 
 
 exports.getBoardgamesByName = functions.https.onRequest((req, res) => {
-    if (req.method === 'PUT' || req.method === 'POST' || req.method === 'DELETE') {
+    if (req.method !== 'GET') {
         return res.status(403).send('Forbidden!')
     }
 
@@ -44,14 +44,14 @@ exports.getBoardgamesByName = functions.https.onRequest((req, res) => {
         if(boardGamesResult.success) {
             res.status(200).send(boardGamesResult)
         } else {
-            res.status(500).send(new Result())
+            res.status(500).send('Internal Server Error')
         }
     })
 })
 
 
 exports.getGameSessionById = functions.https.onRequest((req, res) => {
-    if (req.method === 'PUT' || req.method === 'POST' || req.method === 'DELETE') {
+    if (req.method !== 'GET') {
         return res.status(403).send('Forbidden!')
     }
 
@@ -64,7 +64,7 @@ exports.getGameSessionById = functions.https.onRequest((req, res) => {
         if(gameSessionResult.success) {
             res.status(200).send(gameSessionResult)
         } else {
-            res.status(500).send()
+            res.status(500).send('Internal Server Error')
         }
     })
 })
@@ -106,23 +106,23 @@ exports.createGameSession = functions.https.onRequest((req, res) => {
                             'gameSessionRealtime': realtimeGameSessionResult.data
                         })
                     } else {
-                        res.status(500).send() 
+                        res.status(500).send('Internal Server Error') 
                     }
                 } else {
-                    res.status(500).send() 
+                    res.status(500).send('Internal Server Error') 
                 }    
             } else {
-                res.status(500).send() 
+                res.status(500).send('Internal Server Error') 
             }
         } else {
-            res.status(500).send()            
+            res.status(500).send('Internal Server Error')            
         }
     })
 })
 
 
 exports.updateGameSession = functions.https.onRequest((req, res) => {
-    if (req.method === 'PUT' || req.method === 'GET' || req.method === 'DELETE') {
+    if (req.method !== 'POST') {
         return res.status(403).send('Forbidden!')
     }
 
@@ -135,14 +135,14 @@ exports.updateGameSession = functions.https.onRequest((req, res) => {
         if (gameSessionResult.success) {
             res.status(200).send(gameSessionResult)
         } else {
-            res.status(500).send(new Result())
+            res.status(500).send('Internal Server Error')
         }
     })
 })
 
 
 exports.getRealtimeGameSessionById = functions.https.onRequest((req, res) => {
-    if (req.method === 'PUT' || req.method === 'POST' || req.method === 'DELETE') {
+    if (req.method !== 'GET') {
         return res.status(403).send('Forbidden!')
     }
 
@@ -162,7 +162,7 @@ exports.getRealtimeGameSessionById = functions.https.onRequest((req, res) => {
 
 
 exports.incrementRealtimeDatabasePointsBy = functions.https.onRequest((req, res) => {
-    if (req.method === 'PUT' || req.method === 'GET' || req.method === 'DELETE') {
+    if (req.method !== 'POST') {
         return res.status(403).send('Forbidden!')
     }
 
@@ -176,27 +176,7 @@ exports.incrementRealtimeDatabasePointsBy = functions.https.onRequest((req, res)
         if (realtimeGameSessionResult.success) {
             res.status(200).send(realtimeGameSessionResult)
         } else {
-            res.status(500).send(new Result())
+            res.status(500).send('Internal Server Error')
         }
-    })
-})
-
-
-exports.createRealtimeGameSession = functions.https.onRequest((req, res) => {
-    if (req.method === 'PUT' || req.method === 'GET' || req.method === 'DELETE') {
-        return res.status(403).send('Forbidden!')
-    }
-
-    if (!req.body.gameSessionId || !req.body.players) {
-        return res.status(400).send('Bad request')
-    }
-
-    return cors(req, res, async () => {
-        // let realtimeGameSessionResult = await createRealtimeGameSession(req.body.gameSessionId, req.body.players)
-        // if (realtimeGameSessionResult.success) {
-        //     res.status(200).send(realtimeGameSessionResult)
-        // } else {
-        //     res.status(500).send(new Result())
-        // }
     })
 })

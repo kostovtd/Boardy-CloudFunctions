@@ -6,7 +6,9 @@ const ServerValue = admin.database.ServerValue
 const getRealtimeGameSessionById = async (gameSessionId: any) => {
     try {
         let data = await database.ref().child("gameSession_" + gameSessionId).get()
+
         functions.logger.info("gameSession with ID found in realtime database: " + gameSessionId)
+
         return { success: true, data: data }
     } catch (error) {
         functions.logger.error("getRealtimeGameSessionById error:", error)
@@ -31,6 +33,7 @@ const createRealtimeGameSession = async (gameSessionId: any, players: string, st
         })
         
         functions.logger.info("gameSession created in realtime database with id: " + gameSessionId)
+        
         return { success: true }
     } catch(error) {
         functions.logger.error("createRealtimeGameSession error:", error)
@@ -43,11 +46,15 @@ const incrementRealtimeDatabasePointsBy = async (gameSessionId: any, playerId: a
     try {
         const gameSessionPath = 'gameSession_' + gameSessionId
         const playerPath = 'points/' + playerId
+        
         await database.ref()
             .child(gameSessionPath)
             .update({
                 [playerPath]: ServerValue.increment(points)
             })
+
+        functions.logger.info("realtime database points incremented for game session: " + gameSessionId)
+
         return { success: true }
     } catch (error) {
         functions.logger.error("getRealtimeGameSessionById error:", error)
