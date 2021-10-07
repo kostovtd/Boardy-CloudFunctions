@@ -1,4 +1,5 @@
 import { firestore, admin, functions } from './config/firebase'
+import './result'
 
 const FieldValue = admin.firestore.FieldValue;
 
@@ -16,17 +17,18 @@ interface BoardGame {
   minNumberOfPlayers: number
 }
 
-interface GameSession {
-  adminId: string,
-  boardGameId: string,
-  endTime: any,
-  lossers: string[],
-  players: string[],
-  startTime: any,
-  startingPoints: number,
-  teams: string[],
-  winners: string[]
+class GameSession {
+  adminId: string = ''
+  boardGameId: string = ''
+  endTime: any = null
+  lossers: string[] = []
+  players: string[] = []
+  startTime: any = null
+  startingPoints: number = 0
+  teams: string[] = []
+  winners: string[] = []
 }
+
 
 const converter = <T>() => ({
   toFirestore: (data: Partial<T>) => data,
@@ -39,7 +41,7 @@ const dataPoint = <T>(collectionPath: string) => firestore.collection(collection
 
 const db = {
   boardGames: dataPoint<BoardGame>('boardGames'),
-  gameSessions: dataPoint<GameSession>('gameSessions')
+  gameSessions: dataPoint<GameSession>('gameSessions'),
 }
 
 
@@ -47,13 +49,15 @@ const getAllBoardgames = async () => {
   try {
     const allEntries: any[] = []
     const querySnapshot = await db.boardGames.get()
+
     querySnapshot.forEach((doc: any) => {
       allEntries.push(doc.data())
     })
-    return allEntries
+
+    return { success: true, data: allEntries }
   } catch (error) {
     functions.logger.error("getAllBoardgames error:", error)
-    return false
+    return { success: false }
   }
 }
 
@@ -63,13 +67,15 @@ const getBoardgamesByName = async (name: any) => {
     const allEntries: any[] = []
     const querySnapshot = await db.boardGames.where("name", ">=", name)
       .where("name", "<=", name + '\uf8ff').get()
+
     querySnapshot.forEach((doc: any) => {
       allEntries.push(doc.data())
     })
-    return allEntries
+
+    return { success: true, data: allEntries }
   } catch (error) {
     functions.logger.error("getBoardgamesByName error:", error)
-    return false
+    return { success: false }
   }
 }
 
@@ -77,35 +83,52 @@ const getBoardgamesByName = async (name: any) => {
 const getGameSessionById = async (id: any) => {
   try {
     const querySnapshot = await db.gameSessions.doc(id).get()
-    return querySnapshot.data()
+
+    if(querySnapshot.exists) {
+      functions.logger.info("gameSession with ID exists: " + id)
+      return { success: true, data: querySnapshot.data() }
+    }
+
+    return { success: false }
   } catch (error) {
     functions.logger.error("getGameSessionById error:", error)
-    return false
+    return { success: false }
   }
 }
 
 
 const createGameSession = async (adminId: any,
   boardGameId: any,
-  players: string[],
+  players: any,
   startingPoints: number,
-  teams: string[]) => {
+  teams: any) => {
   try {
+    let documentId = ''
+    let playersArray: string[]= players.replace(/\s/g, '').split(',')
+    let teamsArray: string[] = teams.replace(/\s/g, '').split(',')
+
     await db.gameSessions.add({
       adminId: adminId,
       boardGameId: boardGameId,
       endTime: FieldValue.serverTimestamp(),
       lossers: [],
-      players: players,
+      players: playersArray,
       startTime: FieldValue.serverTimestamp(),
       startingPoints: startingPoints,
-      teams: teams,
+      teams: teamsArray,
       winners: []
     })
-    return true
+    .then(function(docRef) {
+      functions.logger.debug("docRef.id = " + docRef.id)
+      documentId = docRef.id
+    })
+
+    functions.logger.info("gameSession created in firestore")
+    
+    return { success: true, data: documentId }
   } catch (error) {
     functions.logger.error("createGameSession error:", error)
-    return false
+    return { success: false }
   }
 }
 
@@ -113,10 +136,13 @@ const createGameSession = async (adminId: any,
 const updateGameSession = async (gameSessionId: any, gameSession: GameSession) => {
   try {
     await db.gameSessions.doc(gameSessionId).update(gameSession)
-    return true
+    
+    functions.logger.info("game session updated")
+
+    return { success: true }
   } catch (error) {
     functions.logger.error("updateGameSession error:", error)
-    return false
+    return { success: false }
   }
 }
 
@@ -125,4 +151,4 @@ const updateGameSession = async (gameSessionId: any, gameSession: GameSession) =
 
 
 
-export { getAllBoardgames, getBoardgamesByName, getGameSessionById, createGameSession, updateGameSession }
+export { getAllBoardgames, getBoardgamesByName, getGameSessionById, createGameSession, updateGameSession, GameSession }

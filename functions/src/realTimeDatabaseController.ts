@@ -1,29 +1,43 @@
 import { database, admin, functions } from './config/firebase'
+import './result'
 
 const ServerValue = admin.database.ServerValue
 
 const getRealtimeGameSessionById = async (gameSessionId: any) => {
     try {
-        return await database.ref().child("gameSession_" + gameSessionId).get()
+        let data = await database.ref().child("gameSession_" + gameSessionId).get()
+
+        functions.logger.info("gameSession with ID found in realtime database: " + gameSessionId)
+
+        return { success: true, data: data }
     } catch (error) {
         functions.logger.error("getRealtimeGameSessionById error:", error)
-        return false
+        return { success: false }
     }
 }
 
 
-const createRealtimeGameSession = async (gameSessionId: any, players: any) => {
+const createRealtimeGameSession = async (gameSessionId: any, players: string, startingPoints: number) => {
     try {
+        let playersArray: string[]= players.replace(/\s/g, '').split(',')
+        let pointsArray: { [key: string]: number } = {}
+        
+        for(var i=0; i<playersArray.length; i++) {
+            pointsArray[playersArray[i]] = startingPoints
+        }
+
         const gameSessionPath = '/gameSession_' + gameSessionId
-        await database.ref(gameSessionPath)
-        .set({
+        await database.ref(gameSessionPath).set({
             active: true,
-            points: players
+            points: pointsArray
         })
-        return true
+        
+        functions.logger.info("gameSession created in realtime database with id: " + gameSessionId)
+        
+        return { success: true }
     } catch(error) {
         functions.logger.error("createRealtimeGameSession error:", error)
-        return false
+        return { success: false }
     }
 }
 
@@ -32,15 +46,19 @@ const incrementRealtimeDatabasePointsBy = async (gameSessionId: any, playerId: a
     try {
         const gameSessionPath = 'gameSession_' + gameSessionId
         const playerPath = 'points/' + playerId
+        
         await database.ref()
             .child(gameSessionPath)
             .update({
                 [playerPath]: ServerValue.increment(points)
             })
-        return true
+
+        functions.logger.info("realtime database points incremented for game session: " + gameSessionId)
+
+        return { success: true }
     } catch (error) {
         functions.logger.error("getRealtimeGameSessionById error:", error)
-        return false
+        return { success: false }
     }
 }
 
