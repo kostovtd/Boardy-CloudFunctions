@@ -5,6 +5,7 @@ const FieldValue = admin.firestore.FieldValue;
 
 interface BoardGame {
   name: string,
+  id: string,
   moduleName: string,
   maxPlayingTime: number,
   minPlayingTime: number,
@@ -64,12 +65,13 @@ const getAllBoardgames = async () => {
 
 const getBoardgamesByName = async (name: any) => {
   try {
-    const allEntries: any[] = []
+    const allEntries: BoardGame[] = []
     const querySnapshot = await db.boardGames.where("name", ">=", name)
       .where("name", "<=", name + '\uf8ff').get()
 
     querySnapshot.forEach((doc: any) => {
       allEntries.push(doc.data())
+      allEntries[allEntries.length - 1].id = doc.id
     })
 
     return { success: true, data: allEntries }
