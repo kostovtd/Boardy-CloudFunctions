@@ -106,18 +106,18 @@ const createGameSession = async (adminId: any,
   teams: any) => {
   try {
     let documentId = ''
-    let playersArray: string[]= players.replace(/\s/g, '').split(',')
-    let teamsArray: string[] = teams.replace(/\s/g, '').split(',')
+    // let playersArray: string[]= players.toString().replace(/\s/g, '').split(',')
+    // let teamsArray: string[] = teams.replace(/\s/g, '').split(',')
 
     await db.gameSessions.add({
       adminId: adminId,
       boardGameId: boardGameId,
       endTime: FieldValue.serverTimestamp(),
       lossers: [],
-      players: playersArray,
+      players: players,
       startTime: FieldValue.serverTimestamp(),
       startingPoints: startingPoints,
-      teams: teamsArray,
+      teams: teams,
       winners: []
     })
     .then(function(docRef) {
