@@ -103,8 +103,8 @@ exports.createGameSession = functions.https.onRequest((req, res) => {
                     if (realtimeGameSessionResult.success) {
                         res.status(200).send({
                             success: true,
-                            gameSessionFirestore: getGameSessionFirestoreResult.data,
-                            gameSessionRealtime: realtimeGameSessionResult.data
+                            gameSessionFirestore: getGameSessionFirestoreResult.data
+                            // gameSessionRealtime: realtimeGameSessionResult.data
                         })
                     } else {
                         res.status(500).send('Internal Server Error') 
