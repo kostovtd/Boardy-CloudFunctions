@@ -17,13 +17,13 @@ const getRealtimeGameSessionById = async (gameSessionId: any) => {
 }
 
 
-const createRealtimeGameSession = async (gameSessionId: any, players: string, startingPoints: number) => {
+const createRealtimeGameSession = async (gameSessionId: any, players: any, startingPoints: number) => {
     try {
-        let playersArray: string[]= players.replace(/\s/g, '').split(',')
+        // let playersArray: string[]= players.replace(/\s/g, '').split(',')
         let pointsArray: { [key: string]: number } = {}
         
-        for(var i=0; i<playersArray.length; i++) {
-            pointsArray[playersArray[i]] = startingPoints
+        for(var i=0; i<players.length; i++) {
+            pointsArray[players[i].split('|')[0]] = startingPoints
         }
 
         const gameSessionPath = '/gameSession_' + gameSessionId
