@@ -88,7 +88,16 @@ const getGameSessionById = async (id: any) => {
 
     if(querySnapshot.exists) {
       functions.logger.info("gameSession with ID exists: " + id)
-      return { success: true, data: querySnapshot.data() }
+      
+      let findSeconds = "_seconds"
+      let findNanoSeconds = "_nanoseconds"
+      let regExSeconds = new RegExp(findSeconds, 'g')
+      let regExNanoSeconds = new RegExp(findNanoSeconds, 'g')
+      let dataJson = JSON.stringify(querySnapshot.data())
+        .replace(regExSeconds, "seconds")
+        .replace(regExNanoSeconds, "nanoseconds")
+      
+      return { success: true, data: JSON.parse(dataJson) as GameSession }
     }
 
     return { success: false }

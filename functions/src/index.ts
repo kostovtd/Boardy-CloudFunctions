@@ -88,32 +88,19 @@ exports.createGameSession = functions.https.onRequest((req, res) => {
             req.body.teams)
 
         if (createGameSessionFirestoreResult.success) {
-            let getGameSessionFirestoreResult = await getGameSessionById(createGameSessionFirestoreResult.data)
+            let players = req.body.players
+            let points = req.body.startingPoints
 
-            if(getGameSessionFirestoreResult.success) {
-                let players = req.body.players
-                let points = req.body.startingPoints
-
-                let createGameSessionRealtimeResult = await createRealtimeGameSession(createGameSessionFirestoreResult.data,
-                     players, +points)
-                
-                if(createGameSessionRealtimeResult.success) {
-                    let realtimeGameSessionResult = await getRealtimeGameSessionById(createGameSessionFirestoreResult.data)
-    
-                    if (realtimeGameSessionResult.success) {
-                        res.status(200).send({
-                            success: true,
-                            gameSessionFirestore: getGameSessionFirestoreResult.data
-                            // gameSessionRealtime: realtimeGameSessionResult.data
-                        })
-                    } else {
-                        res.status(500).send('Internal Server Error') 
-                    }
-                } else {
-                    res.status(500).send('Internal Server Error') 
-                }    
+            let createGameSessionRealtimeResult = await createRealtimeGameSession(createGameSessionFirestoreResult.data,
+                players, +points)
+            
+            if(createGameSessionRealtimeResult.success) {
+                res.status(200).send({
+                    success: true,
+                    gameSessionId: createGameSessionFirestoreResult.data
+                })
             } else {
-                res.status(500).send('Internal Server Error') 
+                res.status(500).send('Internal Server Error')            
             }
         } else {
             res.status(500).send('Internal Server Error')            

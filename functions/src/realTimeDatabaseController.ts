@@ -19,7 +19,7 @@ const getRealtimeGameSessionById = async (gameSessionId: any) => {
 
 const createRealtimeGameSession = async (gameSessionId: any, players: any, startingPoints: number) => {
     try {
-        // let playersArray: string[]= players.replace(/\s/g, '').split(',')
+
         let pointsArray: { [key: string]: number } = {}
         
         for(var i=0; i<players.length; i++) {
