@@ -1,11 +1,16 @@
 import * as functions from "firebase-functions";
 import {
-    getAllBoardgames, getBoardgamesByName,
-    getGameSessionById, createGameSession, updateGameSession
+    getAllBoardgames, 
+    getBoardgamesByName,
+    getGameSessionById, 
+    createGameSession, 
+    updateGameSession
 } from './firestoreController'
 import {
-    getRealtimeGameSessionById, incrementRealtimeDatabasePointsBy,
-    createRealtimeGameSession
+    getRealtimeGameSessionById, 
+    incrementRealtimeDatabasePointsBy,
+    createRealtimeGameSession,
+    updateRealtimeGameSession
 } from './realTimeDatabaseController'
 
 
@@ -114,16 +119,36 @@ exports.updateGameSession = functions.https.onRequest((req, res) => {
         return res.status(403).send('Forbidden!')
     }
 
-    if (!req.body.gameSessionId || !req.body.gameSession) {
+    if (!req.body.gameSessionId) {
         return res.status(400).send('Bad request')
     }
 
     return cors(req, res, async () => {
-        let gameSessionResult = await updateGameSession(req.body.gameSessionId, req.body.gameSession)
-        if (gameSessionResult.success) {
-            res.status(200).send(gameSessionResult)
-        } else {
+        let updateGameSessionFirestoreFailed = false
+        let updateGameSessionDatabaseFailed = false
+
+        if(req.body.gameSessionFirestore) {
+            let updateGameSessionFirestoreResult = await updateGameSession(req.body.gameSessionId,
+                req.body.gameSessionFirestore)
+
+            updateGameSessionFirestoreFailed = !updateGameSessionFirestoreResult.success
+        }
+    
+        if(req.body.gameSessionDatabase) {
+            let updateGameSessionDatabaseResult = await updateRealtimeGameSession(
+                req.body.gameSessionId,
+                req.body.gameSessionDatabase
+            )
+
+            updateGameSessionDatabaseFailed = !updateGameSessionDatabaseResult.success
+        }
+
+        if(updateGameSessionFirestoreFailed || updateGameSessionDatabaseFailed) {
             res.status(500).send('Internal Server Error')
+        } else {
+            res.status(200).send({
+                success: true
+            })
         }
     })
 })

@@ -21,8 +21,8 @@ const createRealtimeGameSession = async (gameSessionId: any, players: any, start
     try {
 
         let pointsArray: { [key: string]: number } = {}
-        
-        for(var i=0; i<players.length; i++) {
+
+        for (var i = 0; i < players.length; i++) {
             pointsArray[players[i].split('|')[0]] = startingPoints
         }
 
@@ -31,11 +31,11 @@ const createRealtimeGameSession = async (gameSessionId: any, players: any, start
             active: true,
             points: pointsArray
         })
-        
+
         functions.logger.info("gameSession created in realtime database with id: " + gameSessionId)
-        
+
         return { success: true }
-    } catch(error) {
+    } catch (error) {
         functions.logger.error("createRealtimeGameSession error:", error)
         return { success: false }
     }
@@ -46,7 +46,7 @@ const incrementRealtimeDatabasePointsBy = async (gameSessionId: any, playerId: a
     try {
         const gameSessionPath = 'gameSession_' + gameSessionId
         const playerPath = 'points/' + playerId
-        
+
         await database.ref()
             .child(gameSessionPath)
             .update({
@@ -63,9 +63,26 @@ const incrementRealtimeDatabasePointsBy = async (gameSessionId: any, playerId: a
 }
 
 
-// const updateRealtimeGameSession
+const updateRealtimeGameSession = async (gameSessionId: any, realtimeGameSession: any) => {
+    try {
+        const gameSessionPath = 'gameSession_' + gameSessionId
+
+        await database.ref()
+            .child(gameSessionPath)
+            .update(realtimeGameSession)
+
+        return { success: true }
+    } catch (error) {
+        return { success: false }
+    }
+}
 
 // Add deleteGameSession function. It should not be public. Maybe it should be a trigger
 
 
-export { getRealtimeGameSessionById, incrementRealtimeDatabasePointsBy, createRealtimeGameSession }
+export {
+    getRealtimeGameSessionById,
+    incrementRealtimeDatabasePointsBy,
+    createRealtimeGameSession,
+    updateRealtimeGameSession
+}

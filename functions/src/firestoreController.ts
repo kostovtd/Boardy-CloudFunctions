@@ -86,9 +86,9 @@ const getGameSessionById = async (id: any) => {
   try {
     const querySnapshot = await db.gameSessions.doc(id).get()
 
-    if(querySnapshot.exists) {
+    if (querySnapshot.exists) {
       functions.logger.info("gameSession with ID exists: " + id)
-      
+
       let findSeconds = "_seconds"
       let findNanoSeconds = "_nanoseconds"
       let regExSeconds = new RegExp(findSeconds, 'g')
@@ -96,7 +96,7 @@ const getGameSessionById = async (id: any) => {
       let dataJson = JSON.stringify(querySnapshot.data())
         .replace(regExSeconds, "seconds")
         .replace(regExNanoSeconds, "nanoseconds")
-      
+
       return { success: true, data: JSON.parse(dataJson) as GameSession }
     }
 
@@ -129,13 +129,13 @@ const createGameSession = async (adminId: any,
       teams: teams,
       winners: []
     })
-    .then(function(docRef) {
-      functions.logger.debug("docRef.id = " + docRef.id)
-      documentId = docRef.id
-    })
+      .then(function (docRef) {
+        functions.logger.debug("docRef.id = " + docRef.id)
+        documentId = docRef.id
+      })
 
     functions.logger.info("gameSession created in firestore")
-    
+
     return { success: true, data: documentId }
   } catch (error) {
     functions.logger.error("createGameSession error:", error)
@@ -144,11 +144,9 @@ const createGameSession = async (adminId: any,
 }
 
 
-const updateGameSession = async (gameSessionId: any, gameSession: GameSession) => {
+const updateGameSession = async (gameSessionId: any, gameSession: any) => {
   try {
     await db.gameSessions.doc(gameSessionId).update(gameSession)
-    
-    functions.logger.info("game session updated")
 
     return { success: true }
   } catch (error) {
@@ -159,7 +157,11 @@ const updateGameSession = async (gameSessionId: any, gameSession: GameSession) =
 
 // Add deleteGameSession function. It should not be public. Maybe it should be a trigger
 
-
-
-
-export { getAllBoardgames, getBoardgamesByName, getGameSessionById, createGameSession, updateGameSession, GameSession }
+export {
+  getAllBoardgames,
+  getBoardgamesByName,
+  getGameSessionById,
+  createGameSession,
+  updateGameSession,
+  GameSession
+}
