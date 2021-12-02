@@ -1,7 +1,6 @@
-import { firestore, admin, functions } from './config/firebase'
+import { firestore, functions } from './config/firebase'
 import './result'
 
-const FieldValue = admin.firestore.FieldValue;
 
 interface BoardGame {
   name: string,
@@ -121,10 +120,10 @@ const createGameSession = async (adminId: any,
     await db.gameSessions.add({
       adminId: adminId,
       boardGameId: boardGameId,
-      endTime: FieldValue.serverTimestamp(),
+      endTime: Date.now(),
       lossers: [],
       players: players,
-      startTime: FieldValue.serverTimestamp(),
+      startTime: Date.now(),
       startingPoints: startingPoints,
       teams: teams,
       winners: []
