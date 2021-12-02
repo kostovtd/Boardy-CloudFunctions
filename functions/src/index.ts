@@ -66,8 +66,15 @@ exports.getGameSessionById = functions.https.onRequest((req, res) => {
 
     return cors(req, res, async () => {
         let gameSessionResult = await getGameSessionById(req.query.id)
-        if(gameSessionResult.success) {
-            res.status(200).send(gameSessionResult)
+        let realTimeGameSessionResult = await getRealtimeGameSessionById(req.query.id)
+        if(gameSessionResult.success && realTimeGameSessionResult.success) {
+            res.status(200).send({
+                success: true,
+                data: {
+                    gameSession: gameSessionResult.data,
+                    realTimeGameSession: realTimeGameSessionResult.data
+                }
+            })
         } else {
             res.status(500).send('Internal Server Error')
         }
