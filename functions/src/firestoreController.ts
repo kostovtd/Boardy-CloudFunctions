@@ -21,7 +21,7 @@ class GameSession {
   adminId: string = ''
   boardGameId: string = ''
   endTime: any = null
-  lossers: string[] = []
+  losers: string[] = []
   players: string[] = []
   startTime: any = null
   startingPoints: number = 0
@@ -121,7 +121,7 @@ const createGameSession = async (adminId: any,
       adminId: adminId,
       boardGameId: boardGameId,
       endTime: Date.now(),
-      lossers: [],
+      losers: [],
       players: players,
       startTime: Date.now(),
       startingPoints: startingPoints,
