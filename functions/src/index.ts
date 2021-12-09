@@ -97,7 +97,8 @@ exports.createGameSession = functions.https.onRequest((req, res) => {
             req.body.boardGameId,
             req.body.players, 
             Number(req.body.startingPoints),
-            req.body.teams)
+            req.body.teams,
+            req.body.status)
 
         if (createGameSessionFirestoreResult.success) {
             let players = req.body.players

@@ -27,6 +27,7 @@ class GameSession {
   startingPoints: number = 0
   teams: string[] = []
   winners: string[] = []
+  status: string = ''
 }
 
 
@@ -111,7 +112,8 @@ const createGameSession = async (adminId: any,
   boardGameId: any,
   players: any,
   startingPoints: number,
-  teams: any) => {
+  teams: any,
+  status: any) => {
   try {
     let documentId = ''
     // let playersArray: string[]= players.toString().replace(/\s/g, '').split(',')
@@ -126,7 +128,8 @@ const createGameSession = async (adminId: any,
       startTime: Date.now(),
       startingPoints: startingPoints,
       teams: teams,
-      winners: []
+      winners: [],
+      status: status
     })
       .then(function (docRef) {
         functions.logger.debug("docRef.id = " + docRef.id)
