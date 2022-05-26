@@ -8,7 +8,7 @@ import {
 } from './firestoreController'
 import {
     getRealtimeGameSessionById, 
-    incrementRealtimeDatabasePointsBy,
+    changeRealtimeDatabasePoints,
     createRealtimeGameSession,
     updateRealtimeGameSession
 } from './realTimeDatabaseController'
@@ -182,7 +182,7 @@ exports.getRealtimeGameSessionById = functions.https.onRequest((req, res) => {
 })
 
 
-exports.incrementRealtimeDatabasePointsBy = functions.https.onRequest((req, res) => {
+exports.changeRealtimeDatabasePoints = functions.https.onRequest((req, res) => {
     if (req.method !== 'POST') {
         return res.status(403).send('Forbidden!')
     }
@@ -192,7 +192,7 @@ exports.incrementRealtimeDatabasePointsBy = functions.https.onRequest((req, res)
     }
 
     return cors(req, res, async () => {
-        let realtimeGameSessionResult = await incrementRealtimeDatabasePointsBy(req.body.gameSessionId,
+        let realtimeGameSessionResult = await changeRealtimeDatabasePoints(req.body.gameSessionId,
             req.body.playerId, req.body.points)
         if (realtimeGameSessionResult.success) {
             res.status(200).send(realtimeGameSessionResult)

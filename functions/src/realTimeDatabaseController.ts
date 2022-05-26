@@ -1,7 +1,5 @@
-import { database, admin, functions } from './config/firebase'
+import { database, functions } from './config/firebase'
 import './result'
-
-const ServerValue = admin.database.ServerValue
 
 const getRealtimeGameSessionById = async (gameSessionId: any) => {
     try {
@@ -42,7 +40,7 @@ const createRealtimeGameSession = async (gameSessionId: any, players: any, start
 }
 
 
-const incrementRealtimeDatabasePointsBy = async (gameSessionId: any, playerId: any, points: any) => {
+const changeRealtimeDatabasePoints = async (gameSessionId: any, playerId: any, points: any) => {
     try {
         const gameSessionPath = 'gameSession_' + gameSessionId
         const playerPath = 'points/' + playerId
@@ -50,7 +48,7 @@ const incrementRealtimeDatabasePointsBy = async (gameSessionId: any, playerId: a
         await database.ref()
             .child(gameSessionPath)
             .update({
-                [playerPath]: ServerValue.increment(points)
+                [playerPath]: points
             })
 
         functions.logger.info("realtime database points incremented for game session: " + gameSessionId)
@@ -82,7 +80,7 @@ const updateRealtimeGameSession = async (gameSessionId: any, realtimeGameSession
 
 export {
     getRealtimeGameSessionById,
-    incrementRealtimeDatabasePointsBy,
+    changeRealtimeDatabasePoints,
     createRealtimeGameSession,
     updateRealtimeGameSession
 }
