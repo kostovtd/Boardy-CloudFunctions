@@ -75,6 +75,22 @@ const updateRealtimeGameSession = async (gameSessionId: any, realtimeGameSession
     }
 }
 
+const setRealtimeGameSessionActive = async (gameSessionId: any, isActive: boolean) => {
+    try {
+        const gameSessionPath = 'gameSession_' + gameSessionId
+
+        await database.ref()
+            .child(gameSessionPath)
+            .update({
+                ['active']: isActive
+            })
+
+        return { success: true }
+    } catch (error) {
+        return { success: false }
+    }
+}
+
 // Add deleteGameSession function. It should not be public. Maybe it should be a trigger
 
 
@@ -82,5 +98,6 @@ export {
     getRealtimeGameSessionById,
     changeRealtimeDatabasePoints,
     createRealtimeGameSession,
-    updateRealtimeGameSession
+    updateRealtimeGameSession,
+    setRealtimeGameSessionActive
 }

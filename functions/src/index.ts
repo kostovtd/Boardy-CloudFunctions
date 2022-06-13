@@ -4,13 +4,17 @@ import {
     getBoardgamesByName,
     getGameSessionById, 
     createGameSession, 
-    updateGameSession
+    updateGameSession,
+    setGameSessionStatusActive,
+    setGameSessionStatusSuspended,
+    setGameSessionStatusEnded
 } from './firestoreController'
 import {
     getRealtimeGameSessionById, 
     changeRealtimeDatabasePoints,
     createRealtimeGameSession,
-    updateRealtimeGameSession
+    updateRealtimeGameSession,
+    setRealtimeGameSessionActive
 } from './realTimeDatabaseController'
 
 
@@ -122,6 +126,71 @@ exports.createGameSession = functions.https.onRequest((req, res) => {
 })
 
 
+exports.changeGameSessionStatus = functions.https.onRequest((req, res) => {
+    if (req.method !== 'POST') {
+        return res.status(403).send('Forbidden!')
+    }
+
+    if (!req.body.gameSessionId || !req.body.status) {
+        return res.status(400).send('Bad request')
+    }
+
+    return cors(req, res, async () => {
+        let firestoreResult, databaseResult
+
+        if(req.body.status === 'ACTIVE') {
+            firestoreResult = setGameSessionStatusActive(req.body.gameSessionId)
+            
+            if(firestoreResult.success) {
+                databaseResult = setRealtimeGameSessionActive(req.body.gameSessionId, true)
+                
+                if(databaseResult.success) {
+                    res.status(200).send({
+                        success: true
+                    })
+                } else {
+                    res.status(500).send('Internal Server Error')
+                }
+            } else {
+                res.status(500).send('Internal Server Error')
+            }
+          } else if(req.body.status == 'SUSPENDED') {
+            firestoreResult = setGameSessionStatusSuspended(req.body.gameSessionId)
+
+            if(firestoreResult.success) {
+                databaseResult = setRealtimeGameSessionActive(req.body.gameSessionId, true)
+                if(databaseResult.success) {
+                    res.status(200).send({
+                        success: true
+                    })
+                } else {
+                    res.status(500).send('Internal Server Error')
+                }
+            } else {
+                res.status(500).send('Internal Server Error')
+            }
+          } else if(req.body.status === 'ENDED') {
+            firestoreResult = setGameSessionStatusEnded(req.body.gameSessionId)
+
+            if(firestoreResult.success) {
+                databaseResult = setRealtimeGameSessionActive(req.body.gameSessionId, false)
+
+                if(databaseResult.success) {
+                    res.status(200).send({
+                        success: true
+                    })
+                } else {
+                    res.status(500).send('Internal Server Error')
+                }
+            } else {
+                res.status(500).send('Internal Server Error')
+            }
+          } else {
+            return res.status(400).send('Bad request')
+          }
+    })
+})
+
 exports.updateGameSession = functions.https.onRequest((req, res) => {
     if (req.method !== 'POST') {
         return res.status(403).send('Forbidden!')
@@ -187,7 +256,7 @@ exports.changeRealtimeDatabasePoints = functions.https.onRequest((req, res) => {
         return res.status(403).send('Forbidden!')
     }
 
-    if (!req.body.gameSessionId || !req.body.playerId || !req.body.points) {
+    if (!req.body.gameSessionId || !req.body.playerId || req.body.points < 0) {
         return res.status(400).send('Bad request')
     }
 

@@ -148,6 +148,12 @@ const createGameSession = async (adminId: any,
 
 const updateGameSession = async (gameSessionId: any, gameSession: any) => {
   try {
+    if(gameSession.status === 'ACTIVE') {
+      gameSession.startTime = Date.now()
+    } else if(gameSession.status === 'FINISHED') {
+      gameSession.endTime = Date.now()
+    }
+
     await db.gameSessions.doc(gameSessionId).update(gameSession)
 
     return { success: true }
@@ -157,6 +163,59 @@ const updateGameSession = async (gameSessionId: any, gameSession: any) => {
   }
 }
 
+const setGameSessionStatusActive = async (gameSessionId: any) => {
+  try {
+    await db.gameSessions.doc(gameSessionId)
+      .update(
+        {
+          startTime: Date.now(),
+          status: 'ACTIVE'
+        }
+      )
+
+    return { success: true }
+  } catch (error) {
+    functions.logger.error("setGameSessionStatusActive error:", error)
+    return { success: false }
+  }
+}
+
+
+const setGameSessionStatusSuspended = async (gameSessionId: any) => {
+  try {
+    await db.gameSessions.doc(gameSessionId)
+      .update(
+        {
+          status: 'SUSPENDED'
+        }
+      )
+
+    return { success: true }
+  } catch (error) {
+    functions.logger.error("setGameSessionStatusSuspended error:", error)
+    return { success: false }
+  }
+}
+
+
+const setGameSessionStatusEnded = async (gameSessionId: any) => {
+  try {
+    await db.gameSessions.doc(gameSessionId)
+      .update(
+        {
+          endTime: Date.now(),
+          status: 'ENDED'
+        }
+      )
+
+    return { success: true }
+  } catch (error) {
+    functions.logger.error("setGameSessionStatusEnded error:", error)
+    return { success: false }
+  }
+}
+
+
 // Add deleteGameSession function. It should not be public. Maybe it should be a trigger
 
 export {
@@ -165,5 +224,8 @@ export {
   getGameSessionById,
   createGameSession,
   updateGameSession,
+  setGameSessionStatusActive,
+  setGameSessionStatusSuspended,
+  setGameSessionStatusEnded,
   GameSession
 }
