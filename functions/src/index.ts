@@ -139,10 +139,10 @@ exports.changeGameSessionStatus = functions.https.onRequest((req, res) => {
         let firestoreResult, databaseResult
 
         if(req.body.status === 'ACTIVE') {
-            firestoreResult = setGameSessionStatusActive(req.body.gameSessionId)
+            firestoreResult = await setGameSessionStatusActive(req.body.gameSessionId)
             
             if(firestoreResult.success) {
-                databaseResult = setRealtimeGameSessionActive(req.body.gameSessionId, true)
+                databaseResult = await setRealtimeGameSessionActive(req.body.gameSessionId, true)
                 
                 if(databaseResult.success) {
                     res.status(200).send({
@@ -155,10 +155,10 @@ exports.changeGameSessionStatus = functions.https.onRequest((req, res) => {
                 res.status(500).send('Internal Server Error')
             }
           } else if(req.body.status == 'SUSPENDED') {
-            firestoreResult = setGameSessionStatusSuspended(req.body.gameSessionId)
+            firestoreResult = await setGameSessionStatusSuspended(req.body.gameSessionId)
 
             if(firestoreResult.success) {
-                databaseResult = setRealtimeGameSessionActive(req.body.gameSessionId, true)
+                databaseResult = await setRealtimeGameSessionActive(req.body.gameSessionId, true)
                 if(databaseResult.success) {
                     res.status(200).send({
                         success: true
@@ -170,10 +170,10 @@ exports.changeGameSessionStatus = functions.https.onRequest((req, res) => {
                 res.status(500).send('Internal Server Error')
             }
           } else if(req.body.status === 'ENDED') {
-            firestoreResult = setGameSessionStatusEnded(req.body.gameSessionId)
+            firestoreResult = await setGameSessionStatusEnded(req.body.gameSessionId)
 
             if(firestoreResult.success) {
-                databaseResult = setRealtimeGameSessionActive(req.body.gameSessionId, false)
+                databaseResult = await setRealtimeGameSessionActive(req.body.gameSessionId, false)
 
                 if(databaseResult.success) {
                     res.status(200).send({
@@ -186,7 +186,7 @@ exports.changeGameSessionStatus = functions.https.onRequest((req, res) => {
                 res.status(500).send('Internal Server Error')
             }
           } else {
-            return res.status(400).send('Bad request')
+            res.status(400).send('Bad request')
           }
     })
 })
