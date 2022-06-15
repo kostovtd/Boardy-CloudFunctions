@@ -216,6 +216,28 @@ const setGameSessionStatusEnded = async (gameSessionId: any) => {
 }
 
 
+const addPlayerToFirestoreGameSession = async (gameSessionId: string, playerId: string, playerEmail: string) => {
+  try {
+    let playerEntry = playerId + "|" + playerEmail
+    let teamEntry = playerId + "|" + playerEmail
+
+    var admin = require('firebase-admin');
+
+    await db.gameSessions.doc(gameSessionId)
+    .update(
+      {
+        players: admin.firestore.FieldValue.arrayUnion(playerEntry),
+        teams: admin.firestore.FieldValue.arrayUnion(teamEntry)
+      }
+    )
+
+    return { success: true }
+  } catch (error) {
+    functions.logger.error("addPlayerToGameSession error:", error)
+    return { success: false }
+  }
+}
+
 // Add deleteGameSession function. It should not be public. Maybe it should be a trigger
 
 export {
@@ -227,5 +249,6 @@ export {
   setGameSessionStatusActive,
   setGameSessionStatusSuspended,
   setGameSessionStatusEnded,
+  addPlayerToFirestoreGameSession,
   GameSession
 }
