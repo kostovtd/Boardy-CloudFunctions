@@ -110,6 +110,21 @@ const addPlayerToRealtimeGameSession = async (gameSessionId: string, playerId: s
     }
 }
 
+
+const removePlayerFromRealtimeGameSession = async (gameSessionId: string, playerId: string) => {
+    try {
+        const pointsPath = 'gameSession_' + gameSessionId + "/points/" + playerId
+
+        await database.ref()
+            .child(pointsPath)
+            .remove()
+
+        return { success: true }
+    } catch (error) {
+        return { success: false }
+    }
+}
+
 // Add deleteGameSession function. It should not be public. Maybe it should be a trigger
 
 
@@ -119,5 +134,6 @@ export {
     createRealtimeGameSession,
     updateRealtimeGameSession,
     setRealtimeGameSessionActive,
-    addPlayerToRealtimeGameSession
+    addPlayerToRealtimeGameSession,
+    removePlayerFromRealtimeGameSession
 }

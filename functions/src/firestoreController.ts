@@ -68,7 +68,7 @@ const getBoardgamesByName = async (name: any) => {
     const allEntries: BoardGame[] = []
     const querySnapshot = await db.boardGames.where("name", ">=", name)
       .where("name", "<=", name + '\uf8ff').get()
-
+    
     querySnapshot.forEach((doc: any) => {
       allEntries.push(doc.data())
       allEntries[allEntries.length - 1].id = doc.id
@@ -88,7 +88,7 @@ const getGameSessionById = async (id: any) => {
 
     if (querySnapshot.exists) {
       functions.logger.info("gameSession with ID exists: " + id)
-
+      
       let findSeconds = "_seconds"
       let findNanoSeconds = "_nanoseconds"
       let regExSeconds = new RegExp(findSeconds, 'g')
@@ -238,6 +238,46 @@ const addPlayerToFirestoreGameSession = async (gameSessionId: string, playerId: 
   }
 }
 
+const removePlayerFromFirestoreGameSession = async (gameSessionId: string, playerId: string, playerEmail: string) => {
+  try {
+    let playerEntry = playerId + "|" + playerEmail
+    let teamEntry = playerId + "|" + playerEmail
+
+    let document = await db.gameSessions.doc(gameSessionId).get()
+    
+    if(document.exists) {
+      let playersArr = document.data()?.players ?? []
+
+      playersArr.forEach(function(item, index, object) {
+        if (item === playerEntry) {
+          object.splice(index, 1);
+        }
+      });
+
+      let teamsArr = document.data()?.teams ?? []
+
+      teamsArr.forEach(function(item, index, object) {
+        if (item === teamEntry) {
+          object.splice(index, 1);
+        }
+      });
+
+      await db.gameSessions.doc(gameSessionId)
+      .update({
+        players: playersArr,
+        teams: teamsArr
+      })
+
+      return { success: true }
+    } else {
+      return { success: false }
+    }
+  } catch (error) {
+    functions.logger.error("addPlayerToGameSession error:", error)
+    return { success: false }
+  }
+}
+
 // Add deleteGameSession function. It should not be public. Maybe it should be a trigger
 
 export {
@@ -250,5 +290,6 @@ export {
   setGameSessionStatusSuspended,
   setGameSessionStatusEnded,
   addPlayerToFirestoreGameSession,
+  removePlayerFromFirestoreGameSession,
   GameSession
 }

@@ -8,7 +8,8 @@ import {
     setGameSessionStatusActive,
     setGameSessionStatusSuspended,
     setGameSessionStatusEnded,
-    addPlayerToFirestoreGameSession
+    addPlayerToFirestoreGameSession,
+    removePlayerFromFirestoreGameSession
 } from './firestoreController'
 import {
     getRealtimeGameSessionById, 
@@ -16,7 +17,8 @@ import {
     createRealtimeGameSession,
     updateRealtimeGameSession,
     setRealtimeGameSessionActive,
-    addPlayerToRealtimeGameSession
+    addPlayerToRealtimeGameSession,
+    removePlayerFromRealtimeGameSession
 } from './realTimeDatabaseController'
 
 
@@ -290,6 +292,34 @@ exports.addPlayerToGameSession = functions.https.onRequest((req, res) => {
         if(firestoreResult.success) {
             let realtimeResult = await addPlayerToRealtimeGameSession(req.body.gameSessionId, 
                 req.body.playerId, req.body.points)
+
+            if(realtimeResult.success) {
+                res.status(200).send(realtimeResult)
+            } else {
+                res.status(500).send('Internal Server Error')
+            }
+        } else {
+            res.status(500).send('Internal Server Error')
+        }
+    })
+})
+
+
+exports.removePlayerFromGameSession = functions.https.onRequest((req, res) => {
+    if (req.method !== 'POST') {
+        return res.status(403).send('Forbidden!')
+    }
+
+    if (!req.body.gameSessionId || !req.body.playerId || !req.body.playerEmail) {
+        return res.status(400).send('Bad request')
+    }
+
+    return cors(req, res, async () => {
+        let firestoreResult = await removePlayerFromFirestoreGameSession(req.body.gameSessionId, 
+            req.body.playerId, req.body.playerEmail)
+            
+        if(firestoreResult.success) {
+            let realtimeResult = await removePlayerFromRealtimeGameSession(req.body.gameSessionId, req.body.playerId)
 
             if(realtimeResult.success) {
                 res.status(200).send(realtimeResult)
